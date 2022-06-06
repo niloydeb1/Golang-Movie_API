@@ -1,0 +1,8 @@
+.idea
+*.iws
+*.iml
+*.ipr
+*.ini
+/out/
+*.exe
+/k8s/
