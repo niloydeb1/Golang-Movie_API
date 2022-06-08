@@ -47,40 +47,18 @@ const (
 type USER_REGISTRATION_ACTION string
 
 const (
-	// CREATE_USER refers to create user by admin
-	CREATE_USER = USER_REGISTRATION_ACTION("create_user")
+	// CREATE_ADMIN refers to create admin by superadmin
+	CREATE_ADMIN = USER_REGISTRATION_ACTION("create_admin")
 )
 
 // ROLE role string
 type ROLE string
 
 const (
+	// SUPERADMIN refers to superadmin role
+	SUPERADMIN = ROLE("SUPERADMIN")
 	// ADMIN refers to admin role
 	ADMIN = ROLE("ADMIN")
-	// VIEWER refers to user role
-	VIEWER = ROLE("VIEWER")
-)
-
-// RESOURCE resource string
-type RESOURCE string
-
-const (
-	// USER refers to user resource
-	USER = RESOURCE("user")
-	// MOVIE refers to movie resource
-	MOVIE = RESOURCE("movie")
-)
-
-// PERMISSION permission string
-type PERMISSION string
-
-const (
-	// CREATE refers to CREATE permission
-	CREATE = PERMISSION("CREATE")
-	// READ refers to READ permission
-	READ = PERMISSION("READ")
-	// UPDATE refers to UPDATE permission
-	UPDATE = PERMISSION("UPDATE")
-	// DELETE refers to DELETE permission
-	DELETE = PERMISSION("DELETE")
+	// USER refers to user role
+	USER = ROLE("USER")
 )
