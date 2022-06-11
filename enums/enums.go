@@ -25,8 +25,6 @@ type USER_UPDATE_ACTION string
 const (
 	// RESET_PASSWORD refers to password reset action
 	RESET_PASSWORD = USER_UPDATE_ACTION("reset_password")
-	// FORGOT_PASSWORD refers to password forgot action
-	FORGOT_PASSWORD = USER_UPDATE_ACTION("forgot_password")
 	// UPDATE_STATUS refers to status update action
 	UPDATE_STATUS = USER_UPDATE_ACTION("update_status")
 )

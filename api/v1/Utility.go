@@ -12,19 +12,19 @@ import (
 )
 
 // GetUserFromBearerToken returns user from bearer token
-func GetUserFromBearerToken(context echo.Context, jwtService v1.Jwt) (v1.User, error) {
+func GetUserTokenDtoFromBearerToken(context echo.Context, jwtService v1.Jwt) (v1.UserTokenDto, error) {
 	bearerToken := context.Request().Header.Get("Authorization")
 	if bearerToken == "" {
-		return v1.User{}, errors.New("[ERROR]: No token found!")
+		return v1.UserTokenDto{}, errors.New("[ERROR]: No token found!")
 	}
 	var token string
 	if len(strings.Split(bearerToken, " ")) == 2 {
 		token = strings.Split(bearerToken, " ")[1]
 	} else {
-		return v1.User{}, errors.New("[ERROR]: No token found!")
+		return v1.UserTokenDto{}, errors.New("[ERROR]: No token found!")
 	}
 	if !jwtService.IsTokenValid(token) {
-		return v1.User{}, errors.New("[ERROR]: Token is expired!")
+		return v1.UserTokenDto{}, errors.New("[ERROR]: Token is expired!")
 	}
 	claims := jwt.MapClaims{}
 	jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
@@ -34,9 +34,9 @@ func GetUserFromBearerToken(context echo.Context, jwtService v1.Jwt) (v1.User, e
 	if err != nil {
 		log.Println(err)
 	}
-	user := v1.User{}
-	if err := json.Unmarshal(jsonbody, &user); err != nil {
-		return v1.User{}, errors.New("[ERROR]: No User Found!")
+	userTokenDto := v1.UserTokenDto{}
+	if err := json.Unmarshal(jsonbody, &userTokenDto); err != nil {
+		return v1.UserTokenDto{}, errors.New("[ERROR]: No User Found!")
 	}
-	return user, nil
+	return userTokenDto, nil
 }

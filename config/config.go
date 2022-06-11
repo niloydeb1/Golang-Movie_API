@@ -5,7 +5,6 @@ import (
 	"github.com/niloydeb1/Golang-Movie_API/enums"
 	"log"
 	"os"
-	"strings"
 )
 
 // FirstName admin first name.
@@ -53,17 +52,11 @@ var PrivateKey string
 // Publickey refers to rsa public key .
 var Publickey string
 
-// RegularTokenLifetime refers to token lifetime of regular.
-var RegularTokenLifetime string
+// TokenLifetime refers to token lifetime.
+var TokenLifetime string
 
 // RunMode refers to run mode.
 var RunMode string
-
-// Resources refers to resources.
-var Resources []string
-
-// Permissions refers to permission.
-var Permissions []string
 
 // InitEnvironmentVariables initializes environment variables
 func InitEnvironmentVariables() {
@@ -73,7 +66,7 @@ func InitEnvironmentVariables() {
 	}
 
 	if RunMode != string(enums.PRODUCTION) {
-		//Load .env file
+		// Load .env file
 		err := godotenv.Load()
 		if err != nil {
 			log.Println("ERROR:", err.Error())
@@ -91,21 +84,18 @@ func InitEnvironmentVariables() {
 	Database = os.Getenv("DATABASE")
 	if Database == enums.MONGO {
 		if DbUsername == "" && DbPassword == "" {
-			DatabaseConnectionString = "mongodb://" + DbUsername + ":" + DbPassword + "@" + DbServer + ":" + DbPort
+			DatabaseConnectionString = "mongodb://" + DbServer + ":" + DbPort
 		} else {
 			DatabaseConnectionString = "mongodb://" + DbUsername + ":" + DbPassword + "@" + DbServer + ":" + DbPort
 		}
 	}
 	PrivateKey = os.Getenv("PRIVATE_KEY")
 	Publickey = os.Getenv("PUBLIC_KEY")
-	RegularTokenLifetime = os.Getenv("REGULAR_TOKEN_LIFETIME")
+	TokenLifetime = os.Getenv("TOKEN_LIFETIME")
 
 	FirstName = os.Getenv("USER_FIRST_NAME")
 	LastName = os.Getenv("USER_LAST_NAME")
 	Email = os.Getenv("USER_EMAIL")
 	Password = os.Getenv("USER_PASSWORD")
 	PhoneNumber = os.Getenv("USER_PHONE")
-
-	Resources = strings.Split(os.Getenv("RESOURCES"), ",")
-	Permissions = strings.Split(os.Getenv("PERMISSIONS"), ",")
 }

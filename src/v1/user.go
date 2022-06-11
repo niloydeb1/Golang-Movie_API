@@ -26,6 +26,30 @@ type User struct {
 	Role  			   enums.ROLE			  `json:"role" bson:"role"`
 }
 
+func (u User) GetUsers(status enums.STATUS) []User {
+	var results []User
+	query := bson.M{
+		"$and": []bson.M{
+			{"status": status},
+		},
+	}
+	coll := config.GetDmManager().Db.Collection(UserCollection)
+	result, err := coll.Find(config.GetDmManager().Ctx, query, nil)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	for result.Next(context.TODO()) {
+		elemValue := new(User)
+		err := result.Decode(elemValue)
+		if err != nil {
+			log.Println("[ERROR]", err)
+			break
+		}
+		results = append(results, *elemValue)
+	}
+	return results
+}
+
 func (u User) UpdateStatus(id string, status enums.STATUS) error {
 	user := u.GetByID(id)
 	user.Status = status
@@ -37,7 +61,7 @@ func (u User) UpdateStatus(id string, status enums.STATUS) error {
 	update := bson.M{
 		"$set": user,
 	}
-	upsert := true
+	upsert := false
 	after := options.After
 	opt := options.FindOneAndUpdateOptions{
 		ReturnDocument: &after,
@@ -84,7 +108,9 @@ func (u User) GetByEmail(email string) User {
 	query := bson.M{
 		"$and": []bson.M{},
 	}
-	and := []bson.M{{"email": email}}
+	and := []bson.M{
+		{"email": email},
+	}
 	query["$and"] = and
 	coll := config.GetDmManager().Db.Collection(UserCollection)
 	result, err := coll.Find(config.GetDmManager().Ctx, query, nil)

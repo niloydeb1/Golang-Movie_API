@@ -14,6 +14,35 @@ type RsaKeys struct {
 	PublicKey  *rsa.PublicKey
 }
 
+// LoginDto contains user login info.
+type LoginDto struct {
+	Email    string `json:"email" bson:"email"`
+	Password string `json:"password" bson:"password"`
+}
+
+// Token contains token info.
+type Token struct {
+	Uid          string           `json:"uid" bson:"uid"`
+	Token        string           `json:"token" bson:"token"`
+	RefreshToken string           `json:"refresh_token" bson:"refresh_token"`
+}
+
+// UserTokenDto dto that holds user token info.
+type UserTokenDto struct {
+	ID                 string                 `json:"id" bson:"id"`
+	FirstName          string                 `json:"first_name" bson:"first_name" `
+	LastName           string                 `json:"last_name" bson:"last_name"`
+	Email              string                 `json:"email" bson:"email" `
+	Phone              string                 `json:"phone" bson:"phone" `
+	Status             enums.STATUS           `json:"status" bson:"status"`
+	Role  			   enums.ROLE			  `json:"role" bson:"role"`
+}
+
+// RefreshTokenDto contains refresh token.
+type RefreshTokenDto struct {
+	RefreshToken string `json:"refresh_token" bson:"refresh_token"`
+}
+
 // UserRegistrationDto dto that holds user registration info.
 type UserRegistrationDto struct {
 	ID                 string                 `json:"id" bson:"id"`
@@ -25,6 +54,19 @@ type UserRegistrationDto struct {
 	Status             enums.STATUS           `json:"status" bson:"status"`
 	CreatedDate        time.Time              `json:"created_date" bson:"created_date"`
 	UpdatedDate        time.Time              `json:"updated_date" bson:"updated_date"`
+}
+
+// PasswordResetDto contains data for password reset
+type PasswordResetDto struct {
+	Email           string `json:"email" bson:"email"`
+	CurrentPassword string `json:"current_password" bson:"current_password"`
+	NewPassword     string `json:"new_password" bson:"new_password"`
+}
+
+// JWTPayLoad contains payload of JWT token.
+type JWTPayLoad struct {
+	AccessToken  string `json:"access_token" bson:"access_token"`
+	RefreshToken string `json:"refresh_token" bson:"refresh_token"`
 }
 
 // Validate validates UserRegistrationDto data
