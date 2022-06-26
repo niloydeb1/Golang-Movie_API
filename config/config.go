@@ -5,6 +5,7 @@ import (
 	"github.com/niloydeb1/Golang-Movie_API/enums"
 	"log"
 	"os"
+	"strings"
 )
 
 // FirstName admin first name.
@@ -58,6 +59,9 @@ var TokenLifetime string
 // RunMode refers to run mode.
 var RunMode string
 
+// EnableOpenTracing set true if opentracing is needed.
+var EnableOpenTracing bool
+
 // InitEnvironmentVariables initializes environment variables
 func InitEnvironmentVariables() {
 	RunMode = os.Getenv("RUN_MODE")
@@ -98,4 +102,13 @@ func InitEnvironmentVariables() {
 	Email = os.Getenv("USER_EMAIL")
 	Password = os.Getenv("USER_PASSWORD")
 	PhoneNumber = os.Getenv("USER_PHONE")
+	if os.Getenv("ENABLE_OPENTRACING") == "" {
+		EnableOpenTracing = false
+	} else {
+		if strings.ToLower(os.Getenv("ENABLE_OPENTRACING")) == "true" {
+			EnableOpenTracing = true
+		} else {
+			EnableOpenTracing = false
+		}
+	}
 }
