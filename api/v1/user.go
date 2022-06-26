@@ -70,7 +70,7 @@ func (u userApi) GetByID(context echo.Context) error {
 	id := context.Param("id")
 	if userFromToken.ID != id {
 		if userFromToken.Role != enums.SUPERADMIN && userFromToken.Role != enums.ADMIN {
-			return common.GenerateForbiddenResponse(context, "[ERROR]: Insufficient permission", "Operation Failed!")
+			return common.GenerateUnauthorizedResponse(context, "[ERROR]: Insufficient permission", "Operation Failed!")
 		}
 	}
 	data := v1.User{}.GetByID(id)
@@ -128,7 +128,7 @@ func (u userApi) registerAdmin(context echo.Context) error {
 	if err != nil {
 		return common.GenerateErrorResponse(context, "[ERROR]: Failed to register user!", err.Error())
 	}
-	user :=v1.GetUserFromUserRegistrationDto(formData)
+	user := v1.GetUserFromUserRegistrationDto(formData)
 	user.Role = enums.ADMIN
 	userExist := v1.User{}.GetByEmail(user.Email)
 	if userExist.Email != "" {
@@ -160,7 +160,7 @@ func (u userApi) registerUser(context echo.Context) error {
 	if err != nil {
 		return common.GenerateErrorResponse(context, "[ERROR]: Failed to register user!", err.Error())
 	}
-	user :=v1.GetUserFromUserRegistrationDto(formData)
+	user := v1.GetUserFromUserRegistrationDto(formData)
 	user.Role = enums.USER
 	userExist := v1.User{}.GetByEmail(user.Email)
 	if userExist.Email != "" {

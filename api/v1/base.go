@@ -7,4 +7,5 @@ func Router(g *echo.Group) {
 	UserRouter(g.Group("/users"))
 	OauthRouter(g.Group("/oauth"))
 	MovieRouter(g.Group("/movies"))
+	ReviewRouter(g.Group("/reviews"))
 }

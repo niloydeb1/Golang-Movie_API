@@ -47,7 +47,7 @@ func (m movieApi) GetByID(context echo.Context) error {
 // @Description Api for searching movies
 // @Tags Movie
 // @Produce json
-// @Param title query string true "title keyword"
+// @Param title query string false "title keyword"
 // @Param page query string false "page"
 // @Param limit query string false "limit"
 // @Success 200 {object} common.ResponseDTO{data=[]v1.Movie{}}
@@ -57,39 +57,27 @@ func (m movieApi) GetByID(context echo.Context) error {
 func (m movieApi) Search(context echo.Context) error {
 	pagination := getPagination(context)
 	title := strings.ToLower(context.QueryParam("title"))
-	query := bson.M{
-		"Title": title,
-	}
-	data, total := v1.Movie{}.Search(query, v1.Pagination{})
-	if len(data) == 0 {
-		var movie v1.Movie
-		_, res, err := v1.HttpClientService{}.Get("https://www.omdbapi.com/?apikey=1154146a&t="+title, nil)
-		if err != nil {
-			return common.GenerateErrorResponse(context, "[ERROR]: Failed to connect to Omdb server", "Operation failed")
+	var query bson.M
+	var data []v1.Movie
+	var total int64
+	if title != "" {
+		query = bson.M{
+			"Title": title,
 		}
-		err = json.Unmarshal(res, &movie)
-		if err != nil {
-			return common.GenerateErrorResponse(context, err, err.Error())
-		}
-		if movie.Title == "" {
-			return common.GenerateErrorResponse(context, "[ERROR]: Movie does not exist", "Operation failed")
-		}
-		movie.Title = strings.ToLower(movie.Title)
-		checkMovie := v1.Movie{}.GetByTitle(movie.Title)
-		if checkMovie.Title == "" {
-			movie.ID = uuid.New().String()
-			err = v1.Movie{}.Store(movie)
+		data, total = v1.Movie{}.Search(query, v1.Pagination{})
+		if len(data) == 0 {
+			err := fetchAndStoreMovie(context, title)
 			if err != nil {
-				return common.GenerateErrorResponse(context, err, err.Error())
+				return err
 			}
 		}
-	}
-	reg := ".*" + title + ".*"
-	query = bson.M{
-		"Title": bson.M{"$regex": primitive.Regex{
-			Pattern: reg,
-			Options: "i",
-		}},
+		reg := ".*" + title + ".*"
+		query = bson.M{
+			"Title": bson.M{"$regex": primitive.Regex{
+				Pattern: reg,
+				Options: "i",
+			}},
+		}
 	}
 	data, total = v1.Movie{}.Search(query, pagination)
 	metadata := common.GetPaginationMetadata(pagination.Page, pagination.Limit, total, int64(len(data)))
@@ -103,6 +91,31 @@ func (m movieApi) Search(context echo.Context) error {
 	}
 	return common.GenerateSuccessResponse(context, data,
 		&metadata, "Successful")
+}
+
+func fetchAndStoreMovie(context echo.Context, title string) error {
+	var movie v1.Movie
+	_, res, err := v1.HttpClientService{}.Get("https://www.omdbapi.com/?apikey=1154146a&t="+title, nil)
+	if err != nil {
+		return common.GenerateErrorResponse(context, "[ERROR]: Failed to connect to Omdb server", "Operation failed")
+	}
+	err = json.Unmarshal(res, &movie)
+	if err != nil {
+		return common.GenerateErrorResponse(context, err, err.Error())
+	}
+	if movie.Title == "" {
+		return common.GenerateErrorResponse(context, "[ERROR]: Movie does not exist", "Operation failed")
+	}
+	movie.Title = strings.ToLower(movie.Title)
+	checkMovie := v1.Movie{}.GetByTitle(movie.Title)
+	if checkMovie.Title == "" {
+		movie.ID = uuid.New().String()
+		err = v1.Movie{}.Store(movie)
+		if err != nil {
+			return common.GenerateErrorResponse(context, err, err.Error())
+		}
+	}
+	return nil
 }
 
 func getPagination(context echo.Context) v1.Pagination {
