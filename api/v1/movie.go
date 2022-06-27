@@ -117,17 +117,3 @@ func fetchAndStoreMovie(context echo.Context, title string) error {
 	}
 	return nil
 }
-
-func getPagination(context echo.Context) v1.Pagination {
-	option := v1.Pagination{}
-	page := context.QueryParam("page")
-	limit := context.QueryParam("limit")
-	if page == "" {
-		option.Page = 0
-		option.Limit = 10
-	} else {
-		option.Page, _ = strconv.ParseInt(page, 10, 64)
-		option.Limit, _ = strconv.ParseInt(limit, 10, 64)
-	}
-	return option
-}

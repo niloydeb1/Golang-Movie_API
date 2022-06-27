@@ -8,4 +8,5 @@ func Router(g *echo.Group) {
 	OauthRouter(g.Group("/oauth"))
 	MovieRouter(g.Group("/movies"))
 	ReviewRouter(g.Group("/reviews"))
+	CommentRouter(g.Group("/comments"))
 }

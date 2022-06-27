@@ -8,6 +8,7 @@ import (
 	"github.com/niloydeb1/Golang-Movie_API/config"
 	v1 "github.com/niloydeb1/Golang-Movie_API/src/v1"
 	"log"
+	"strconv"
 	"strings"
 )
 
@@ -39,4 +40,18 @@ func GetUserTokenDtoFromBearerToken(context echo.Context, jwtService v1.Jwt) (v1
 		return v1.UserTokenDto{}, errors.New("[ERROR]: No User Found!")
 	}
 	return userTokenDto, nil
+}
+
+func getPagination(context echo.Context) v1.Pagination {
+	option := v1.Pagination{}
+	page := context.QueryParam("page")
+	limit := context.QueryParam("limit")
+	if page == "" {
+		option.Page = 0
+		option.Limit = 10
+	} else {
+		option.Page, _ = strconv.ParseInt(page, 10, 64)
+		option.Limit, _ = strconv.ParseInt(limit, 10, 64)
+	}
+	return option
 }

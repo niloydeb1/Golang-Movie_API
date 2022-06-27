@@ -31,14 +31,14 @@ type ReviewedMovie struct {
 }
 
 func (r Review) Validate() error {
-	if r.Movie.ID == "" || r.Movie.Title == "" {
-		return errors.New("invalid movie information")
+	if r.Movie.ID == "" {
+		return errors.New("movie id is not provided")
 	}
 	if r.ReviewTitle == "" {
-		return errors.New("review title is empty")
+		return errors.New("review title is not provided")
 	}
 	if r.Description == "" {
-		return errors.New("review description is empty")
+		return errors.New("review description is not provided")
 	}
 	return nil
 }

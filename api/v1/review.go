@@ -17,8 +17,9 @@ import (
 func ReviewRouter(g *echo.Group) {
 	g.GET("/:id", reviewApi{}.GetByID)
 	g.GET("", reviewApi{}.Search)
+	g.GET("/:id/comments", reviewApi{}.GetComments)
 	g.POST("", reviewApi{}.Post)
-	g.DELETE("", reviewApi{}.Delete)
+	g.DELETE("/:id", reviewApi{}.Delete)
 }
 
 type reviewApi struct {
@@ -87,6 +88,38 @@ func (r reviewApi) Search(context echo.Context) error {
 		&metadata, "Successful")
 }
 
+// Get... Get Comments Api
+// @Summary Get Comments api
+// @Description Api for getting comments of a review
+// @Tags Comment
+// @Produce json
+// @Param id path string true "review id"
+// @Param page query string false "page"
+// @Param limit query string false "limit"
+// @Success 200 {object} common.ResponseDTO{data=[]v1.Comment{}}
+// @Forbidden 403 {object} common.ResponseDTO
+// @Failure 400 {object} common.ResponseDTO
+// @Router /api/v1/reviews/{id}/comments [GET]
+func (r reviewApi) GetComments(context echo.Context) error {
+	id := context.Param("id")
+	if id == "" {
+		return common.GenerateErrorResponse(context, "[ERROR]: Review id is not provided", "Operation failed")
+	}
+	pagination := getPagination(context)
+	data, total := v1.Comment{}.GetByReviewId(id, pagination)
+	metadata := common.GetPaginationMetadata(pagination.Page, pagination.Limit, total, int64(len(data)))
+	uri := strings.Split(context.Request().RequestURI, "?")[0]
+	if pagination.Page > 0 {
+		metadata.Links = append(metadata.Links, map[string]string{"prev": uri + "?page=" + strconv.FormatInt(pagination.Page-1, 10) + "&limit=" + strconv.FormatInt(pagination.Limit, 10)})
+	}
+	metadata.Links = append(metadata.Links, map[string]string{"self": uri + "?page=" + strconv.FormatInt(pagination.Page, 10) + "&limit=" + strconv.FormatInt(pagination.Limit, 10)})
+	if (pagination.Page+1)*pagination.Limit < metadata.TotalCount {
+		metadata.Links = append(metadata.Links, map[string]string{"next": uri + "?page=" + strconv.FormatInt(pagination.Page+1, 10) + "&limit=" + strconv.FormatInt(pagination.Limit, 10)})
+	}
+	return common.GenerateSuccessResponse(context, data,
+		&metadata, "Successful")
+}
+
 // Post... Post Api
 // @Summary Post review api
 // @Description Api for posting review
@@ -106,24 +139,32 @@ func (r reviewApi) Post(context echo.Context) error {
 	if userFromToken.ID == "" {
 		return common.GenerateUnauthorizedResponse(context, "[ERROR]: User not found!", "Please provide valid user information.")
 	}
-	formData := v1.Review{}
-	if err := context.Bind(&formData); err != nil {
+	reviewDto := v1.Review{}
+	if err := context.Bind(&reviewDto); err != nil {
 		log.Println("Input Error:", err.Error())
 		return common.GenerateErrorResponse(context, nil, "Failed to Bind Input!")
 	}
-	err = formData.Validate()
+	err = reviewDto.Validate()
 	if err != nil {
-		return common.GenerateErrorResponse(context, "[ERROR]: Invalid data provided.", err.Error())
+		return common.GenerateErrorResponse(context, "[ERROR]: Invalid data provided", err.Error())
 	}
-	formData.ID = uuid.New().String()
-	formData.ReviewerEmail = userFromToken.Email
-	formData.ReviewerId = userFromToken.ID
-	formData.CreatedAt = time.Now().UTC()
-	err = v1.Review{}.Store(formData)
+	movie := v1.Movie{}.GetByID(reviewDto.Movie.ID)
+	if movie.ID == "" {
+		return common.GenerateErrorResponse(context, "[ERROR]: Movie is not found", "Operation Failed")
+	}
+	reviewDto.Movie.Title = movie.Title
+	reviewDto.Movie.Year = movie.Year
+	reviewDto.Movie.Director = movie.Director
+	reviewDto.Movie.Genre = movie.Genre
+	reviewDto.ID = uuid.New().String()
+	reviewDto.ReviewerEmail = userFromToken.Email
+	reviewDto.ReviewerId = userFromToken.ID
+	reviewDto.CreatedAt = time.Now().UTC()
+	err = v1.Review{}.Store(reviewDto)
 	if err != nil {
 		return common.GenerateErrorResponse(context, err, err.Error())
 	}
-	return common.GenerateSuccessResponse(context, "[SUCCESS]: Review posted successfully", nil, "Operation Successful")
+	return common.GenerateSuccessResponse(context, "[SUCCESS]: Review is posted successfully", nil, "Operation Successful")
 }
 
 // Delete... Delete Api
@@ -136,7 +177,7 @@ func (r reviewApi) Post(context echo.Context) error {
 // @Success 200 {object} common.ResponseDTO
 // @Failure 400 {object} common.ResponseDTO
 // @Forbidden 403 {object} common.ResponseDTO
-// @Router /api/v1/reviews [DELETE]
+// @Router /api/v1/reviews/{id} [DELETE]
 func (r reviewApi) Delete(context echo.Context) error {
 	userFromToken, err := GetUserTokenDtoFromBearerToken(context, v1.Jwt{})
 	if err != nil {
@@ -149,16 +190,16 @@ func (r reviewApi) Delete(context echo.Context) error {
 	if id == "" {
 		return common.GenerateErrorResponse(context, "[ERROR]: Review id is not provided", "Operation failed")
 	}
-	data := v1.Review{}.GetByID(id)
-	if data.ID == "" {
+	review := v1.Review{}.GetByID(id)
+	if review.ID == "" {
 		return common.GenerateErrorResponse(context, "[ERROR]: Review is not found!", "Please provide a valid review id!")
 	}
-	if data.ReviewerId != userFromToken.ID && userFromToken.Role != enums.ADMIN && userFromToken.Role != enums.SUPERADMIN {
+	if review.ReviewerId != userFromToken.ID && userFromToken.Role != enums.ADMIN && userFromToken.Role != enums.SUPERADMIN {
 		return common.GenerateUnauthorizedResponse(context, "[ERROR]: Insufficient permission", "Operation Failed!")
 	}
 	err = v1.Review{}.Delete(id)
 	if err != nil {
 		return common.GenerateErrorResponse(context, err, err.Error())
 	}
-	return common.GenerateSuccessResponse(context, "[SUCCESS]: Review deleted successfully", nil, "Operation Successful")
+	return common.GenerateSuccessResponse(context, "[SUCCESS]: Review is deleted successfully", nil, "Operation Successful")
 }
